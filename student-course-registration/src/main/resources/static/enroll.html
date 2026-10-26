@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enroll Student</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <h2 class="mb-3">Enroll Student in Course</h2>
+
+    <div class="card p-3">
+        <form id="enrollForm">
+
+            <div class="row">
+                <div class="col-md-5">
+                    <label>Student</label>
+                    <select id="studentSelect" class="form-select"></select>
+                </div>
+
+                <div class="col-md-5">
+                    <label>Course</label>
+                    <select id="courseSelect" class="form-select"></select>
+                </div>
+
+                <div class="col-md-2 mt-4">
+                    <button class="btn btn-success w-100">Enroll</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="card p-3 mt-4">
+        <h4>Enrollment Records</h4>
+        <table class="table table-striped" id="enrollTable">
+            <thead class="table-dark">
+                <tr><th>ID</th><th>Student</th><th>Course</th><th>Date</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+function loadStudents() {
+    // FIX 1: Change API path from "/students" to "/api/students"
+    fetch("/api/students").then(r => r.json()).then(data => {
+        let s = document.getElementById("studentSelect");
+        s.innerHTML = "";
+        data.forEach(st =>
+            // FIX 2: Change st.id to st.studentId
+            s.innerHTML += `<option value="${st.studentId}">${st.name}</option>`
+        );
+    });
+}
+
+function loadCourses() {
+    // FIX 3: Change API path from "/courses" to "/api/courses"
+    fetch("/api/courses").then(r => r.json()).then(data => {
+        let c = document.getElementById("courseSelect");
+        c.innerHTML = "";
+        data.forEach(co =>
+            // FIX 4: Change co.id to co.courseId
+            c.innerHTML += `<option value="${co.courseId}">${co.title}</option>`
+        );
+    });
+}
+
+function loadEnrollments() {
+    // FIX 5: Change API path from "/enrollments" to "/api/enroll/enrollments"
+    fetch("/api/enroll/enrollments").then(r => r.json()).then(data => {
+        let tb = document.querySelector("#enrollTable tbody");
+        tb.innerHTML = "";
+        data.forEach(e =>
+            tb.innerHTML += `
+                <tr>
+                    <td>${e.id}</td>
+                    <td>${e.student.name}</td>
+                    <td>${e.course.title}</td>
+                    <td>${e.enrollmentDate}</td>
+                </tr>`
+        );
+    });
+}
+
+document.getElementById("enrollForm").addEventListener("submit", e => {
+    e.preventDefault();
+
+    let req = {
+        // FIX 6: studentId and courseId values are correct (they come from the updated select options)
+        studentId: document.getElementById("studentSelect").value,
+        courseId: document.getElementById("courseSelect").value
+    };
+
+    // Note: POST path is already correct as it hits the /api/enroll base mapping
+    fetch("/api/enroll", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(req)
+    }).then(() => loadEnrollments());
+});
+
+loadStudents();
+loadCourses();
+loadEnrollments();
+</script>
+
+</body>
+</html>
